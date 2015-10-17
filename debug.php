@@ -1,92 +1,250 @@
 <?
-/*
-	Функция debug(mixed $var[, bool $mode = false])
-	Отображает техническую информацию.
-		$var - основной параметр функции. Его возможные значения:
-			'logtime' или пусто	- на экран выводится время в микросекундах, необходимое 
-								  для загрузки фрагмента страницы, на котором была вызвана функция.
-			Любая переменная	- на экран выводится содержимое переменной
-		$return - режим работы функции
-			false	- функция выводит на экран данные
-			true	- функция возвращает данные вместо вывода на экран
-	Дата создания: 27.10.2014
-	Дата модификации ($return): 27.12.2014
+/* 
+	ФУНКЦИИ ДЛЯ ОТЛАДКИ СКРИПТОВ 
+
+	РЕЖИМ ОТЛАДКИ v.1.0. Спецификация:
+	Работает посредством глобальных переменных: 
+		$debugMode 	- true/false вкл/выкл режима отладки,
+		$debugLog	- архив логов для текущей сессии.
+	Методы для работы с логами:
+		Debug::Addlog()		- Добавление строки в лог,
+		Debug::Printlog() 	- Вывод лога.
+	Подробней см.соответствующие функциям описания.
 */
-function debug($var = 'logtime',$return = false) {
-	if ($var == 'logtime') {
-		global $START_TIME;
+
+class Debug {
+	/*
+		Функция Checkpoint()
+		На экран выводится время в микросекундах, необходимое для загрузки фрагмента 
+		страницы, на котором была вызвана функция.
+			$return - режим работы функции
+				false	- функция выводит на экран данные
+				true	- функция возвращает данные вместо вывода на экран
+		
+		ВЕРСИИ:
+			1.0. 2015.01.14.
+			1.1. 2015.01.18. Добавил возможность независимого вкл/выкл таймера
+	*/
+	public function Checkpoint ($return=false) {
+		
+		global $START_TIME,
+			   $debugMode,
+			   $debugShowCheckpoints,
+			   $accessRights,
+			   $developerRights;
 	
-		if (!$START_TIME) { $START_TIME = microtime(TRUE); }
-		else {
-			$scriptTime = microtime(TRUE) - $START_TIME;
-			$scriptTime = number_format($scriptTime*1000, 3, ',', ' ');
-			if ($return == false) { print ($scriptTime.' ms'); }
-			elseif ($return == true) { return ($scriptTime.' ms'); }
-		}
-	}
-	else {
-		if ($return == false) {
-			if (!empty($var)) {
-				?>
-				<section class="panel">
-				  <header class="panel-heading font-bold">Содержимое переменной</header>
-				  <div class="panel-body">
-					<pre><?
-				print_r($var);
-				?>
-					</pre>
-				  </div>
-				</section>
-				<?
+		if( $accessRights>=$developerRights ) { // Проверка прав разработчика
+			if (!$START_TIME) { $START_TIME = microtime(TRUE); }
+			else {
+				if( $debugMode || $debugShowCheckpoints ) {
+					$scriptTime = microtime(TRUE) - $START_TIME;
+					$scriptTime = number_format($scriptTime*1000, 3, ',', ' ');
+					if( $return == false ) { 
+						print ($scriptTime.' ms'); 
+					}
+					elseif( $return == true ) { 
+						return ($scriptTime.' ms'); 
+					}
+				}
+				else return false;
 			}
 		}
-		elseif ($return == true) {
-			return ( var_export($var,true) );
+		else return false;
+	}
+	
+	/*
+		Функция Vardump(mixed $var[, bool $return = false])
+		Отображает техническую информацию.
+			$var - основной параметр функции. Его возможные значения:
+				Любая переменная - на экран выводится содержимое переменной, отформатированное
+									в формате Bootstrap
+			$return - режим работы функции
+				false	- функция выводит на экран данные
+				true	- функция возвращает данные вместо вывода на экран
+		Версии:
+			1.0. 2015.01.14.
+	*/
+	public function Vardump ($var = false,$return = false) {
+		
+		global $accessRights,
+			   $developerRights;
+		
+		if( $accessRights>=$developerRights ) { // Проверка прав разработчика
+			if (!$var) {
+				return false;
+			}
+			else {
+				if ($return == false) {
+					if (!empty($var)) {
+						?>
+						<div class="panel">
+						  <header class="panel-heading font-bold">Содержимое переменной</header>
+						  <div class="panel-body">
+							<pre class="bg-white no-borders"><?
+						print_r($var);
+						?>
+							</pre>
+						  </div>
+						</div>
+						<?
+					}
+				}
+				elseif ($return == true) {
+					return ( var_export($var,true) );
+				}
+			}
+		}
+		else return false;
+	}
+	
+	/*
+		Выводит содержимое системных переменных в формате Bootstrap
+		Версии:
+			1.0. 2014.10.29.
+			1.1. 2015.01.14. функция внесена в класс Debug
+			1.2. 2015.01.17. Добавлена возможность вывода отдельных переменных
+	*/
+	public function Showglobals ($globalsList) {
+		
+		global  $debugMode,
+				$accessRights,
+			   	$developerRights;
+		
+		if( $accessRights>=$developerRights ) { // Проверка прав разработчика;
+			if (!empty($_POST)) {
+				if ( $debugMode || stristr($globalsList, 'post') ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Содержимое $_POST</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? print_r($_POST); ?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+			if (!empty($_GET)) {
+				if ( $debugMode || stristr($globalsList, 'get') ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Содержимое $_GET</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? print_r($_GET); ?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+			if (!empty($_FILES)) {
+				if ( $debugMode || stristr($globalsList, 'files') ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Содержимое $_FILES</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? print_r($_FILES); ?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+			if (!empty($_SESSION)) {
+				if ( $debugMode || stristr($globalsList, 'session') ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Содержимое $_SESSION</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? print_r($_SESSION); ?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+			if (!empty($_COOKIE)) {
+				if ( $debugMode || stristr($globalsList, 'cookie') ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Содержимое $_COOKIE</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? print_r($_COOKIE); ?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+		}
+		else return false;
+	}
+	
+	/*
+		Выводит имя переменной
+		Взял тут http://rsdn.ru/forum/web/3560073.all<br>
+		Дата создания: 29.10.2014
+	*/
+	public function Varname(&$var) {	
+		
+		$old = $var;	
+		$var = md5(mt_rand(0, 999999))."_".$var; // Временно изменяем значение на случай, если есть несколько переменных с одинаковым значением
+		$name= array_search($var, $GLOBALS);	
+		$var = $old;
+		return $name;
+	}
+	
+	/*
+		Функция Printlog() выводит Лог всех функций, отформатированный в формате Bootstrap
+	*/
+	public function Printlog() {
+		
+		global 	$debugMode,
+				$debugLog,
+				$accessRights,
+			   	$developerRights;
+		
+		if( $accessRights>=$developerRights ) { // Проверка прав разработчика;
+			if( $debugMode ) {
+				if( !empty($_SESSION['debugLog']) ) {
+					?>
+					<div class="panel wrapper">
+					  <header class="panel-heading font-bold">Логи выполнения функций</header>
+					  <div class="panel-body">
+						<pre class="bg-white no-borders"><? 
+							foreach ($_SESSION['debugLog'] as $logString) {
+								print_r($logString);
+							}
+							$_SESSION['debugLog'] = NULL;
+							?>
+						</pre>
+					  </div>
+					</div>
+					<?
+				}
+			}
+		}
+		else return false;
+	}
+	
+	/*
+		Addlog(string $funcName, string $message)
+		Добавляет строку в лог выполнения функций.
+		Переменные:
+			$funcName 	= название функции для отображения в логах;
+			$message	= сообщение
+		Версии:
+			1.0. 2015.01.14.
+	*/
+	public function Addlog ($funcName,$message) {
+		
+		global 	$debugMode,
+				$accessRights,
+			   	$developerRights;
+		
+		if( $accessRights>=$developerRights ) { // Проверка прав разработчика;
+			if ($debugMode!==false) { $_SESSION['debugLog'][] = Debug::Checkpoint(true).".	".$funcName." » ".$message."<br>"; }
 		}
 	}
-}
-
-/*
-	Выводит содержимое данных, отправленных из формы, в удобочитаемом формате Bootstrap
-	Дата создания: 29.10.2014
-*/
-function debug_showGlobals()
-{
-	if (!empty($_POST)) {
-		?>
-		<section class="panel">
-		  <header class="panel-heading font-bold">Содержимое $_POST</header>
-		  <div class="panel-body">
-            <pre><? print_r($_POST); ?>
-            </pre>
-		  </div>
-		</section>
-		<?
-	}
-	if (!empty($_GET)) {
-		?>
-		<div class="panel">
-		  <header class="panel-heading font-bold">Содержимое $_GET</header>
-		  <div class="panel-body">
-			<pre><? print_r($_GET); ?>
-			</pre>
-		  </div>
-		</div>
-		<?
-	}
-}
-
-/*
-	Выводит имя переменной
-	Взял тут http://rsdn.ru/forum/web/3560073.all<br>
-	Дата создания: 29.10.2014
-*/
-function varName(&$var)
-{	
-	$old = $var;	
-	$var = md5(mt_rand(0, 999999))."_".$var; // Временно изменяем значение на случай, если есть несколько переменных с одинаковым значением
-	$name= array_search($var, $GLOBALS);	
-	$var = $old;
-	return $name;
 }
 ?>

@@ -7,7 +7,7 @@ class AccessControl {
 		Функция AccessCheck()
 		Проверяет права доступа к контенту сайта
 	*/
-	public function AccessCheck() {
+	public function AccessCheck () {
 		
 		global 	$accessControl,
 				$visitorRights,
@@ -18,12 +18,14 @@ class AccessControl {
 		$adminRights 	 = 1; // Администратор контента
 		$developerRights = 2; // Разработчик
 		
+		//print($_SESSION['user_id']); die;
+		
 		if( $accessControl ) {
-			if( $_SESSION['uid'] == 2251846 ) {		// я
+			if( $_SESSION['user_id'] == 2251846 ) {		// я
 				return 2;
 			}
 			else return 0;
-		} else return true;
+		} else return $developerRights;
 	}
 }
 ?>
