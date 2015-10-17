@@ -41,3 +41,20 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+config.php
+bak/db-2014-12-28.php
+*.xml
+test-db.php
+vkBAK.php
+userbox.php
+test-vk.php
+test-hub.php
+test-html.php
+abajur67/abajur.php
+abajur67/data.php
+abajur67/db.php
+abajur67/debug.php
+abajur67/filesystem.php
+abajur67/html.php
+abajur67/hub.php
+abajur67/vk.php
