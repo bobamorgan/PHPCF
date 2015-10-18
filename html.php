@@ -47,23 +47,31 @@ class Html {
 	
 	/*
 		Выводит хэдер html кода
-			$pageName - переменная, содержащая название текущей страницы.
-			$vkApi_id - Переменная, производящая инициализацию Open API Вконтакте
-						по ID приложения.
+			$pageName 		- переменная, содержащая название текущей страницы.
+			$vkApi_id 		- Переменная, производящая инициализацию Open API Вконтакте
+							  по ID приложения.
+			$pageVersion	- Версия страницы
 			Версии:
 				1.0. 2015.10.17
+				1.1. 2015.10.18 - Добавлена версия страницы
 	*/
-	public function Header ($pageName,$vkApi_id=FALSE) {
+	public function Header ($pageName,$pageVersion=FALSE,$vkApi_id=FALSE) {
 		
 		global 	$siteName,
-				$imagePath;
+				$imagePath,
+				$accessRights,
+				$debugMode;
 	
 		//	Debug::Checkpoint();
 	
 		// Присваиваем имя заголовку сайта
 		$siteHeader = $siteName;
-		if (isset($pageName))
+		if (isset($pageName)) {
 			$siteHeader = $siteName.' | '.$pageName;
+		}
+		if ($pageVersion && $debugMode && $accessRights>=2) {
+			$siteHeader = $siteHeader.' v.'.$pageVersion;
+		}
 		?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -79,6 +87,7 @@ class Html {
     <link rel="stylesheet" href="<?=path_root()?>css/font.css" type="text/css" cache="false" />
     <link rel="stylesheet" href="<?=path_root()?>css/plugin.css" type="text/css" />
     <link rel="stylesheet" href="<?=path_root()?>css/app.css" type="text/css" />
+    <link rel="stylesheet" href="<?=path_root()?>css/extra.css" type="text/css" />
     <!--[if lt IE 9]>
         <script src="js/ie/respond.min.js" cache="false"></script>
         <script src="js/ie/html5.js" cache="false"></script>
@@ -351,12 +360,7 @@ class Html {
 				  </li>
 				</ul>
 			  </nav>
-			  <!-- note -->
-			  <div class="bg-danger wrapper hidden-vertical animated fadeInUp text-sm">            
-				  <a href="#" data-dismiss="alert" class="pull-right m-r-n-sm m-t-n-sm"><i class="fa fa-times"></i></a>
-				  <i class="fa fa-clock-o"></i> <?=Debug::Checkpoint()?>
-			  </div>
-			  <!-- / note -->
+			  <?=Html::Checkpoint('note')?>
 			</section>
 			<!-- /menu -->
 			<!-- footer -->
@@ -383,28 +387,39 @@ class Html {
 				'success' 	- зеленый для сообщений об успешном действии;
 				'danger'	- красный для сообщений об ошибках;
 				'info'		- синий для вывода окна с информацией, например help или faq
-			string $headerText - переменная, содержит в себе текстовый заголовок к стикеру.
+			string $headerText - если указана, выведет текстовый заголовок к стикеру.
+			string $changeIcon - название иконки Font-Awesome, если указана, заменит иконку по-умолчанию.
 
 		ВЕРСИИ:
 			1.0. 2015.01.12
+			1.1. 2015.10.18 - Добавлена возможность установки произвольной иконки
 	*/	
-	public function Alert($type='warning',$msg,$headerText=false) {
+	public function Alert($type='warning',$msg,$headerText=false,$changeIcon=false) {
 		// Проверка на корректный тип
 		if( $type == 'warning') {
-			$headerIcon	= 'fa-exclamation-triangle';
+			if ($changeIcon) { $headerIcon = $changeIcon; } 
+			else { $headerIcon = 'fa-exclamation-triangle'; }
 			//$headerText = 'Внимание!';
 		}
 		elseif( $type == 'success') {
-			$headerIcon	= 'fa-check-circle';
+			if ($changeIcon) { $headerIcon = $changeIcon; } 
+			else { $headerIcon = 'fa-check-circle'; }
 			//$headerText = 'Успех!';
 		}
 		elseif( $type == 'danger') {
-			$headerIcon	= 'fa-exclamation-circle';
+			if ($changeIcon) { $headerIcon = $changeIcon; } 
+			else { $headerIcon = 'fa-exclamation-circle'; }
 			//$headerText = 'Ошибка!';
 		}
 		elseif( $type == 'info') {
-			$headerIcon	= 'fa-info-circle';
+			if ($changeIcon) { $headerIcon = $changeIcon; } 
+			else { $headerIcon = 'fa-info-circle'; }
 			//$headerText = 'Для информации.';
+		}
+		elseif( $type == 'note') {
+			if ($changeIcon) { $headerIcon = $changeIcon; } 
+			else { $headerIcon = 'fa-exclamation-circle'; }
+			//$headerText = 'Не забыть!';
 		}
 		else return false;
 		// Проверка на наличие сообщения
@@ -414,19 +429,31 @@ class Html {
 			}
 		}
 		// Вывод HTML
-		?>
-        <div class="alert alert-<?=$type?> text-left animated fadeInDown">
-        	<button type="button" class="close" data-dismiss="alert"><i class="fa fa-times"></i></button>
-            <? if ($headerText) {
-				?>
-            	<h4><i class="fa <?=$headerIcon?>"></i> <?=$headerText?></h4>
-        		<? echo $msg;
-			} else {
-				?><i class="fa <?=$headerIcon?>"></i> <? echo $msg;
-			}
+		if ($type == 'note') {
 			?>
-        </div>
-		<?
+			<!-- note -->
+			<div class="bg-danger wrapper hidden-vertical animated fadeInUp text-sm">            
+				<a href="#" data-dismiss="alert" class="pull-right m-r-n-sm m-t-n-sm"><i class="fa fa-times"></i></a>
+				<i class="fa <?=$headerIcon?>"></i> <?=$msg?>
+			</div>
+			<!-- / note -->
+			<?
+		}
+		else {
+			?>
+			<div class="alert alert-<?=$type?> text-left animated fadeInDown">
+				<button type="button" class="close" data-dismiss="alert"><i class="fa fa-times"></i></button>
+				<? if ($headerText) {
+					?>
+					<h4><i class="fa <?=$headerIcon?>"></i> <?=$headerText?></h4>
+					<? echo $msg;
+				} else {
+					?><i class="fa <?=$headerIcon?>"></i> <? echo $msg;
+				}
+				?>
+			</div>
+			<?
+		}
 	}
 	
 	/*
@@ -480,6 +507,48 @@ class Html {
 		Debug::Showglobals();
 		Html::Footer();
 		exit;	
+	}
+	
+	/*
+		Выводит информацию о времени загрузки компонента в виде стикера TODO
+		Типы стикера соответствуют описанным в функции Html::Alert
+		
+		ВЕРСИИ:
+			1.0. 2015.10.18
+	*/
+	public function Checkpoint( $type='warning' ) {
+		
+		global 	$debugMode,
+				$debugShowCheckpoints;
+
+		if ($debugMode && $debugShowCheckpoints) Html::Alert($type,Debug::Checkpoint(true),false,'fa-clock-o');
+	}
+	
+	/*
+		Выводит страницу с контентом
+		
+		ВЕРСИИ:
+			1.0. 2015.10.18
+	*/
+	public function ContentPage( $contentPage = NULL ) {
+		
+		global 	$pageName,
+				$pageVersion,
+				$debugMode,
+				$debugShowCheckpoints,
+				$accessRights;
+		
+		?>
+		<!-- .vbox -->
+		<section id="content">
+      		<section class="vbox">
+		<?
+		if ($debugMode && $accessRights>=2) { require_once($_SERVER['DOCUMENT_ROOT'].'/debug/index.php'); }
+		else { require_once($contentPage); }
+		?>
+			</section>
+    	</section><!--// .vbox -->
+		<?
 	}
 }
 ?>
