@@ -215,7 +215,7 @@ class Html {
 					  <a href="<?=path_root()?>users/profile.php">Профиль</a>
 					</li>
 					<li>
-					  <a href="#">
+                      <a href="#">
 						<span class="badge bg-danger pull-right">3</span>
 						Уведомления
 					  </a>
@@ -230,43 +230,14 @@ class Html {
 				  </ul>
 				  <div class="visible-xs m-t m-b">
 					<a href="#" class="h3"><?=$smmUser['first_name'].' '.$smmUser['last_name']?></a>
-					<p><i class="fa fa-dot-circle-o"></i> $rights</p>
+					<p><i class="fa fa-dot-circle-o"></i></p>
 				  </div>
 				</div>
-				<div class="nav-msg">
-				  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-					<b class="badge badge-white count-n">2</b>
-				  </a>
-				  <section class="dropdown-menu m-l-sm pull-left animated fadeInRight">
-					<div class="arrow left"></div>
-					<section class="panel bg-white">
-					  <header class="panel-heading">
-						<strong>You have <span class="count-n">2</span> notifications</strong>
-					  </header>
-					  <div class="list-group">
-						<a href="#" class="media list-group-item">
-						  <span class="pull-left thumb-sm">
-							<img src="<?=path_root()?>images/avatar.jpg" alt="John said" class="img-circle">
-						  </span>
-						  <span class="media-body block m-b-none">
-							Use awesome animate.css<br>
-							<small class="text-muted"><?=daterus(time(),3)?></small>
-						  </span>
-						</a>
-						<a href="#" class="media list-group-item">
-						  <span class="media-body block m-b-none">
-							1.0 initial released<br>
-							<small class="text-muted"><?=daterus(time(),3)?></small>
-						  </span>
-						</a>
-					  </div>
-					  <footer class="panel-footer text-sm">
-						<a href="#" class="pull-right"><i class="fa fa-cog"></i></a>
-						<a href="#">See all the notifications</a>
-					  </footer>
-					</section>
-				  </section>
-				</div>
+				<? if( $accessRights>=2 ) { ?>
+                    <div class="nav-msg">
+                      <a href="<?=$_SERVER['PHP_SELF']?>?debugToggle" class="pull-right"><i class="fa fa-cog"></i></a> <? // debugMode переключатель ?>
+                    </div>
+                <? } ?>
 			  </div>
 			<!-- /user -->
 			<!-- menu -->
