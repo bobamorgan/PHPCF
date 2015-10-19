@@ -61,3 +61,6 @@ abajur67/vk.php
 bak/BAK_html.php
 bak/BAK_vk.php
 bak/BAK_debug.php
+bak/BAK_db.php
+test/test-construct.php
+test/test.php

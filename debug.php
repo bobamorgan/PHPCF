@@ -233,7 +233,8 @@ class Debug {
 		Переменные:
 			$funcName 	= название функции для отображения в логах;
 			$message	= сообщение
-		Версии:
+		
+		ВЕРСИИ:
 			1.0. 2015.01.14.
 	*/
 	public function Addlog ($funcName,$message) {
@@ -245,6 +246,22 @@ class Debug {
 		if( $accessRights>=$developerRights ) { // Проверка прав разработчика;
 			if ($debugMode!==false) { $_SESSION['debugLog'][] = Debug::Checkpoint(true).".	".$funcName." » ".$message."<br>"; }
 		}
+	}
+	
+	/*
+		CheckCode()
+		Функция служит для технической отладки кода.
+		Выполняет проверку в любом месте кода, выводит лог и содержимое переменной $var, после чего завершает сценарий.
+		
+		ВЕРСИИ:
+			1.0. 2015.10.19.
+	*/
+	public function CheckCode( $var=false ) {
+		?><pre><?
+		self::Printlog();
+		var_dump($var);
+		?><pre><?
+		die;
 	}
 }
 ?>

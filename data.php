@@ -23,9 +23,11 @@ function path_root()
 					  каждое значение с новой строки).
 		$systemDirs - эта переменная содержит системные папки, находящиеся
 					  в корневом каталоге, которые не учитываются при формировании меню.
-	30.10.2014; 02.11.2014
+	ВЕРСИИ:
+		1.0. 2014.10.30
+		1.1. 2014.11.02
 */
-function menuTree($menuConfig,$systemDirs = NULL)
+function menuTree( $menuConfig, $systemDirs=NULL )
 {
 	global $defaultIcon;
 	
@@ -51,7 +53,8 @@ function menuTree($menuConfig,$systemDirs = NULL)
 			$hiddenDir 		= 0;
 			foreach ($systemDirs as $systemDir)
 			{
-				if ( $systemDir == substr ($indexDir,0,strlen($systemDir)) ) { $hiddenDir = 1; }
+				if ( $systemDir == substr ($indexDir,0,strlen($systemDir)) ) { $hiddenDir = 1; } // Удаляем системные директории
+				
 			}
 			if ($hiddenDir == 0) 
 			{ 
@@ -213,8 +216,8 @@ function menuTree($menuConfig,$systemDirs = NULL)
 	указанном в переменной $dir одним массивом.
 	Исключая каталоги с именем в переменной $exc,
 	которые находятся в корневой папке и их подкаталоги.
-	ДОРАБОТАНА 30.10.2014
-	Добавлены исключения. 
+	ВЕРСИИ:
+		1.1. 2014.10.30 - Добавлены исключения. 
 */
 function dirList($dir, $exc=NULL)
 {
@@ -242,11 +245,12 @@ function dirList($dir, $exc=NULL)
 }
 
 /*
-	ДОРАБОТАННАЯ 10.12.2009г.
 	Функция filelist(string $dir[, string $ext[, string $exc]])
 	выводит все файлы по маске $ext (по умолчанию *, т.е. все файлы) в каталоге,
 	указанном в переменной $dir	и во всех его подкаталогах одним массивом.
 	Исключая файлы с расширением $exc (если $ext=='*').
+	ВЕРСИИ:
+		1.1. 2009.12.10
 */
 function fileList($dir=NULL, $ext='*', $exc=NULL)
 {
@@ -365,7 +369,8 @@ function daterus($unix, $openmode=1)
 /*
 	Simple function to sort an array by a specific key.
 	http://ru2.php.net/manual/en/function.sort.php
-	02.11.2014
+	ВЕРСИИ:
+		1.0. 2014.11.02
 */
 function array_sort($array, $on, $order=SORT_ASC)
 {

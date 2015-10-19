@@ -1,111 +1,188 @@
 <?
 /* ФУНКЦИИ ДЛЯ РАБОТЫ С БАЗОЙ ДАННЫХ И СЕССИЯМИ */
 
-class Mysql {
-	//
-	//	Список функций
-	//
-	//	connect()			- производит подключение к базе данных MySQ
-	//	userLoginVK()		- осуществляет авторизацию OAuth Вконтакте
-	//	userLogout()		- удаляет информацию о зарегистрированном пользователе из сессии
-	//	function userAuth()	- выполняет авторизацию пользователя на сайте (логин/логаут)
-	//			
+class MySQL {
 	
 	/*
-		Функция connect(string $user=false, string $pass=false, string $database=false[, bool $logging=false]) производит подключение к базе данных MySQL
+		Функция Connect (string $user=false, string $pass=false, string $database=false[, bool $logging=false]) 
+		производит подключение к базе данных MySQL
 			$user 		- имя пользователя MySQL
 			$pass 		- пароль пользователя MySQL
 			$database	- название БД
-			$logging	- Включение вывода на экран лога функции (указать значение true)
-		Модифицирована: 27.12.2014.
-	*/
-	public function connect($user=false, $pass=false, $database=false, $logging=false) {
-		global $START_TIME;
-		if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Начало работы функции.<br>"; }
 
-		if(!$user) {
-			global $mysql_user;
+		ВЕРСИИ:
+			1.1. 2014.12.27
+			1.2. 2015.10.19 - Добавлена совместимость с режимом отладки (см. debug.php)
+	*/
+	public function Connect($user=false, $pass=false, $database=false) {
+		
+		global $debugMode;
+		
+		// Установка внутреннего режима отладки
+		$tempDebugMode = $debugMode; // Сохранение глобального значения во временную переменную
+		$debugMode = false; // Внутреннее вкл/выкл режима отладки
+		
+		static $funcName = 'MySQL::Connect'; // Название функции для логов
+
+		Debug::Addlog($funcName);
+
+		// Проверки идентификаторов MySQL
+		
+		Debug::Addlog($funcName, 'Проверка идентификаторов MySQL: Начало.');
+		
+		if(!$user) { // Поиск логина MySQL в конфиг файле
+			
+			global 	$mysql_user;
 			$user = $mysql_user;
-			if(!$user) {
-				if ($logging) {
-					$log[] = debug('logtime',true).". MySQL Connect: ОШИБКА. Пользователь БД не введен вручную и не указан в config файле.<br>";
-					$log[] = debug('logtime',true).". MySQL Connect: Работа функции завершена с ошибкой.<br>";
-					foreach ($log as $logstring) { print ($logstring); } 
-				}
+			
+			if( !$user ) { // Логин MySQL НЕ найден в конфиг файле
+				Debug::Addlog($funcName, '!user » Подключение к MySQL не удалось. Логин БД не введен вручную и не указан в config файле. Завершение работы функции.');
+
+				$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
 				return false;
 			}
-			else { if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Пользователь определен автоматически из config файла как '$user'.<br>"; } }
+			else { // Логин MySQL найден в конфиг файле
+				Debug::Addlog($funcName, "Логин БД определен автоматически из config файла как $user.");
+			}
 		}
-		else {
-			if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Пользователь введен вручную как $user.<br>"; }
+		else { // Логин указан в функции
+			Debug::Addlog($funcName, "Логин БД введен вручную как $user.");
 		}
 		
-		if(!$pass) {
-			global $mysql_password;
+		if( !$pass ) { // Поиск пароля MySQL в конфиг файле
+			
+			global  $mysql_password;
 			$pass = $mysql_password;
-			if(!$pass) {
-				if ($logging) {
-					$log[] = debug('logtime',true).". MySQL Connect: ОШИБКА. Пароль к БД не введен вручную и не указан в config файле.<br>";
-					$log[] = debug('logtime',true).". MySQL Connect: Работа функции завершена с ошибкой.<br>";
-					foreach ($log as $logstring) { print ($logstring); } 
-				}
+			
+			if( !$pass ) { // Пароль MySQL НЕ найден в конфиг файле
+				Debug::Addlog($funcName, '!pass » Подключение к MySQL не удалось. Пароль БД не введен вручную и не указан в config файле. Завершение работы функции.');
+				
+				$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
 				return false;
 			}
-			else {
-				if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Пароль к БД определен автоматически из config файла.<br>"; }
-			}		
+			else { // Пароль MySQL найден в конфиг файле
+				Debug::Addlog($funcName, "Пароль БД определен автоматически из config файла как $pass.");
+			}
 		}
-		else {
-			if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Пароль к БД введен вручную.<br>"; }
+		else { // Пароль указан в функции
+			Debug::Addlog($funcName, "Пароль БД введен вручную как $pass.");
 		}
 		
-		if(!$database) {
-			global $mysql_database;
+		if( !$database ) { // Поиск базы данных MySQL в конфиг файле
+			
+			global 		$mysql_database;
 			$database = $mysql_database;
-			if(!$database) {
-				if ($logging) {
-					$log[] = debug('logtime',true).". MySQL Connect: ОШИБКА. Имя БД не введено вручную и не указано в config файле.<br>";
-					$log[] = debug('logtime',true).". MySQL Connect: Работа функции завершена с ошибкой.<br>";
-					foreach ($log as $logstring) { print ($logstring); }
-				}
+			
+			if( !$database ) { // База данных MySQL НЕ найдена в конфиг файле
+				Debug::Addlog($funcName, '!database » Подключение к MySQL не удалось. База данных MySQL не введена вручную и не указана в config файле. Завершение работы функции.');
+				
+				$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
 				return false;
 			}
-			else {
-				if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Имя БД определено автоматически из config файла как '$database'.<br>"; }
+			else { // База данных MySQL найдена в конфиг файле
+				Debug::Addlog($funcName, "База данных MySQL определена автоматически из config файла как $database.");
 			}
 		}
-		else {
-			if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Имя БД введено вручную как $database.<br>"; }
+		else { // База данных MySQL указана в функции
+			Debug::Addlog($funcName, "База данных MySQL введена вручную как $database.");
 		}
-		if ($logging) { $log[] = debug('logtime',true).". MySQL Connect: Начинаем подключение к БД.<br>"; }
-		@ $db = mysql_pconnect('localhost',$user,$pass);
-		if (!$db)
-		{
-			 if ($logging) {
-				 $log[] = debug('logtime',true).'. MySQL Connect: ОШИБКА. Невозможно подключиться к БД. Пожалуйста попробуйте позже.<br>';
-				 $log[] = debug('logtime',true).". MySQL Connect: Работа функции завершена с ошибкой.<br>";
-				 foreach ($log as $logstring) { print ($logstring); }
-			 }
-			 return false;
+
+		Debug::Addlog($funcName, 'Проверка идентификаторов MySQL: Конец.');
+		Debug::Addlog($funcName, "Начинаем подключение к MySQL.");
+
+		@ $db = mysql_pconnect( 'localhost', $user, $pass );
+		if( !$db ) { // Подключение к MySQL НЕ удалось
+			Debug::Addlog($funcName, "!db » Подключение к MySQL не удалось. Завершение работы функции.");
+			
+			$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+			return false;
 		}
-		else
+		else // Подключение успешно
 		{	
 			mysql_query('SET NAMES utf8');
+			Debug::Addlog($funcName, "Подключение к MySQL произведено.");
+			
 			$dbase = mysql_select_db($database);
-			if (!$dbase)
-			{
-				if ($logging) {
-					$log[] = debug('logtime',true).'. MySQL Connect: ОШИБКА. Указанной базы данных не существует.<br>';
-					$log[] = debug('logtime',true).". MySQL Connect: Работа функции завершена с ошибкой.<br>";
-					foreach ($log as $logstring) { print ($logstring); }
-				}
+			if( !$dbase ) { // Не найдена указанная база данных
+				Debug::Addlog($funcName, "!dbase » Не найдена указанная база данных MySQL. Завершение работы функции.");
+			
+				$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
 				return false;
 			}
-			if ($logging) {
-				$log[] = debug('logtime',true).'. MySQL Connect: УСПЕХ. Подключение к базе данных произведено.<br>';
-				foreach ($log as $logstring) { print ($logstring); }
-			}
+			
+			Debug::Addlog($funcName, "Работа фукнции завершилась успешно.");
+			
+			$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
 			return true;
+		}
+	}
+	
+	/*
+		Функция Query(string $query)
+		
+		Посылает запрос $query в базу данных MySQL.
+		Возвращает несколько вариантов:
+			false	 - в случае, если запрос не был выполнен
+			true	 - в случае, если запрос типа INSERT, UPDATE, DELETE, DROP выполнен успешно
+			NULL	 - в случае, если запрос типа SELECT, SHOW, DESCRIBE, EXPLAIN удачен, но данные не найдены
+			Array	 - в случае, если запрос типа SELECT, SHOW, DESCRIBE, EXPLAIN удачен и найдены данные
+		
+		ВЕРСИИ:
+			1.1. 2015.10.19
+	*/
+	public function Query( $query ) {
+		
+		global $debugMode;
+		
+		// Установка внутреннего режима отладки
+		$tempDebugMode = $debugMode; // Сохранение глобального значения во временную переменную
+		$debugMode = true; // Внутреннее вкл/выкл режима отладки
+		
+		static $funcName = 'MySQL::Query'; // Название функции для логов
+
+		Debug::Addlog($funcName,$query);
+		
+		if( self::Connect() ) { // Есть подключение к MySQL
+			$result = mysql_query($query);
+			
+			if( $result ) { // Запрос успешен
+				$numRows = mysql_num_rows($result);
+				
+				if( $numRows>0 ) { // Успешный результат поискового запроса. Данные найдены
+					for( $i=0;$i<$numRows;$i++ ) {
+						$queryResult[] = mysql_fetch_array($result);
+					}
+					Debug::Addlog($funcName,'MySQL query successful. Strings found: '.$numRows.'.');
+					mysql_free_result($result);
+					
+					$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+					return $queryResult;
+				}
+				elseif ($result === true) { // Успешный результат. Запрос типа INSERT, UPDATE, DELETE, DROP выполнен
+					Debug::Addlog($funcName,'MySQL query successful. Value: TRUE.');
+					
+					$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+					return true;
+				}
+				else { // Успешный результат поискового запроса. Данные НЕ найдены
+					Debug::Addlog($funcName,'MySQL query successful. Strings found: '.$numRows.'.');
+					
+					$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+					return NULL;
+				}
+			}
+			else { // Запрос не был выполнен, проверить корректность построения запроса
+				Debug::Addlog($funcName,'MySQL query failure. Correct query string.');
+				
+				$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+				return false;
+			}
+		}
+		else { // Подключение к MySQL не удалось (см. MySQL::Connect)
+			Debug::Addlog($funcName,'MySQL connection failure.');
+			
+			$debugMode = $tempDebugMode; // Возвращение значения глобальной переменной
+			return false;
 		}
 	}
 	

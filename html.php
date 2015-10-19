@@ -55,7 +55,7 @@ class Html {
 				1.0. 2015.10.17
 				1.1. 2015.10.18 - Добавлена версия страницы
 	*/
-	public function Header ($pageName,$pageVersion=FALSE,$vkApi_id=FALSE) {
+	public function Header( $pageName,$pageVersion=FALSE,$vkApi_id=FALSE ) {
 		
 		global 	$siteName,
 				$imagePath,
@@ -119,7 +119,7 @@ class Html {
 		Версии:
 			1.0. 2015.10.17
 	*/
-	public function Footer ($javaScript) {
+	public function Footer( $javaScript ) {
 		
 		$javaLibs = explode(',',$javaScript);
 		?>
@@ -159,11 +159,12 @@ class Html {
 		Версии:
 			1.0. 2015.10.17
 	*/
-	public function MenuLeft () {
+	public function MenuLeft() {
 		
 		global 	$systemDirs,
 				$siteName,
-				$smmUser;
+				$smmUser,
+				$accessRights;
 		
 		// Иконка в меню по-умолчанию, если она не указана в файле конфигурации
 		$defaultIcon = 'fa-question-circle';
@@ -178,7 +179,7 @@ class Html {
 		*/
 		$menuConfig	 = 'index.nam';
 		
-		$structure = menuTree ($menuConfig,$systemDirs);
+		$structure = menuTree( $menuConfig, $systemDirs );
 		
 		foreach ($structure as $name=>$value) {	$$name = $value; }
 		
@@ -202,7 +203,7 @@ class Html {
 			<div class="lter nav-user hidden-xs pos-rlt">            
 				<div class="nav-avatar pos-rlt">
 				  <a href="#" class="thumb-sm avatar animated rollIn" data-toggle="dropdown">
-					<img src="<?=$smmUser['photo']?>" alt="" class="">
+                    <img src="<?=$_SESSION['photo_rec']?>" alt="" class="">
 					<span class="caret caret-white"></span>
 				  </a>
 				  <ul class="dropdown-menu m-t-sm animated fadeInLeft">
@@ -536,8 +537,14 @@ class Html {
 				$pageVersion,
 				$debugMode,
 				$debugShowCheckpoints,
-				$accessRights;
-		
+				$accessRights,
+				$varDump,
+				$vkUser,
+				$vkApi_id,
+				$mysql_user,
+				$mysql_password,
+				$mysql_database;
+	
 		?>
 		<!-- .vbox -->
 		<section id="content">
