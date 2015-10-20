@@ -263,5 +263,37 @@ class Debug {
 		?><pre><?
 		die;
 	}
+	
+	/*
+		DebugControl()
+		Переключает режим отладки в соответствии с настройками в конфигах в порядке приоритета:
+			Приоритет 1 (самый низкий) - $debugMode переменная, находящаяся в файле core/config.php является переключателем на уровне сайта.
+			Приоритет 2 - $debugPage переменная, находящаяся в конфиге страницы, управляющая режимом отладки локально для каждой страницы.
+			Приоритет 3 - $_SESSION['debugModeSession'] переменная, которой управляет пользователь с правами разработчика. Наивысший приоритет.
+
+		ВЕРСИИ:
+			1.0. 2015.10.20.
+	*/
+	public function DebugControl() {
+	
+		global  $debugModePage,
+				$debugMode,
+				$debugModeToggle;
+				
+		if( isset($debugModePage) ) 
+			$debugMode = $debugModePage; // Локальное управление режимом отладки страницы. Приоритет 2.
+		
+		if( isset($debugModeToggle) ) { // Нажат 'переключатель режима отладки' в левом меню.
+			if( $_SESSION['debugModeSession']==1 ) {
+				$_SESSION['debugModeSession']=0;
+			}
+			else {
+				$_SESSION['debugModeSession']=1;
+			}
+			http_redirect($_SERVER['SCRIPT_URI']);
+		}
+		if( isset($_SESSION['debugModeSession']) )
+			$debugMode = $_SESSION['debugModeSession']; // Управление режимом отладки на уровне сессии. Приоритет 3.
+	}
 }
 ?>

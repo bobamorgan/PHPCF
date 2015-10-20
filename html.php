@@ -163,7 +163,7 @@ class Html {
 		
 		global 	$systemDirs,
 				$siteName,
-				$smmUser,
+				$vkUser,
 				$accessRights;
 		
 		// Иконка в меню по-умолчанию, если она не указана в файле конфигурации
@@ -229,13 +229,13 @@ class Html {
 					</li>
 				  </ul>
 				  <div class="visible-xs m-t m-b">
-					<a href="#" class="h3"><?=$smmUser['first_name'].' '.$smmUser['last_name']?></a>
+					<a href="#" class="h3"><?=$vkUser['first_name'].' '.$vkUser['last_name']?></a>
 					<p><i class="fa fa-dot-circle-o"></i></p>
 				  </div>
 				</div>
 				<? if( $accessRights>=2 ) { ?>
                     <div class="nav-msg">
-                      <a href="<?=$_SERVER['PHP_SELF']?>?debugToggle" class="pull-right"><i class="fa fa-cog"></i></a> <? // debugMode переключатель ?>
+                      <a href="<?=$_SERVER['PHP_SELF']?>?debugModeToggle" class="pull-right"><i class="fa fa-cog" data-toggle="tooltip" data-placement="top" title="Режим отладки"></i></a> <? // переключатель режима отладки ?>
                     </div>
                 <? } ?>
 			  </div>
@@ -502,7 +502,7 @@ class Html {
 		ВЕРСИИ:
 			1.0. 2015.10.18
 	*/
-	public function ContentPage( $contentPage = NULL ) {
+	public function ContentPage( $contentPage=NULL ) {
 		
 		global 	$pageName,
 				$pageVersion,
